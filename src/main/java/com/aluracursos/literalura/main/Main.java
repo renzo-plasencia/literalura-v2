@@ -1,13 +1,11 @@
 package com.aluracursos.literalura.main;
 
-import com.aluracursos.literalura.models.DatosAutor;
-import com.aluracursos.literalura.models.DatosLibros;
-import com.aluracursos.literalura.models.DatosTotales;
-import com.aluracursos.literalura.models.Libros;
+import com.aluracursos.literalura.models.*;
 import com.aluracursos.literalura.repositorio.LibroRepository;
 import com.aluracursos.literalura.services.ConsumoAPI;
 import com.aluracursos.literalura.services.ConvierteDatos;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -53,10 +51,11 @@ public class Main {
                     buscarLibroTitulo();
                     break;
                 case 2:
-                    System.out.println("Seleccionaste opción "+opcion);
+                    obtenerListaLibros();
                     break;
                 case 3:
-                    System.out.println("Seleccionaste opción "+opcion);
+                    //System.out.println("Seleccionaste opción "+opcion);
+                    imprimirAutoresYLecturas();
                     break;
                 case 4:
                     System.out.println("Seleccionaste opción "+opcion);
@@ -130,4 +129,48 @@ public class Main {
                 .findFirst();
     }
 
+    private void obtenerListaLibros(){
+        var busquedas = repositorio.findAll();
+        busquedas.stream()
+                .forEach(libro -> {
+                    String autores = libro.getAutores().stream()
+                            .map(Autores::getNombreAutor)
+                            .collect(Collectors.joining(", "));
+
+                    String idiomas = libro.getIdiomas().stream()
+                            .map(idioma -> idioma.getIdioma())
+                            .collect(Collectors.joining(", "));
+
+                            System.out.println("----------------------");
+                            System.out.printf(
+                                    "Título: %s\nAutores: %s\nDescargas: %.0f\nIdiomas: %s\n",
+                                    libro.getTitulo(),
+                                    autores,
+                                    libro.getDescargas(),
+                                    idiomas
+                            );
+                        }
+                    );
+
+    }
+
+    private void imprimirAutoresYLecturas() {
+        var libros = repositorio.findAllWithAutoresAndIdiomas();
+
+        libros.stream()
+                .flatMap(libro -> libro.getAutores().stream()) // Explorar cada autor de cada libro
+                .distinct() // Evitar duplicados si un autor tiene varios libros
+                .forEach(autor -> {
+                    // Imprimir información del autor
+                    System.out.println("Autor: " + autor.getNombreAutor());
+                    System.out.println("Fecha de nacimiento: " + autor.getFechaNacimiento());
+                    System.out.println("Fecha de fallecimiento: " + autor.getFechaMuerte());
+
+                    // Obtener y formatear los títulos de los libros del autor
+                    String librosDelAutor = autor.getLibro().getTitulo();
+
+                    System.out.println("Libros: [" + librosDelAutor + "]");
+                    System.out.println("----------------------");
+                });
+    }
 }
